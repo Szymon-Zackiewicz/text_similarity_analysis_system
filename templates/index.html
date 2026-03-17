@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plagiarism Detection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    h2 {
+      color: #333;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    p {
+      text-align: center;
+      color: #666;
+    }
+
+    .myClass {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    input[type="file"] {
+      border: 1px solid #ddd;
+      padding: 10px;
+      width: 100%;
+      color: #666;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 10px;
+      color: #333;
+    }
+
+    input[type="submit"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+
+    .text-upload-form {
+    display: flex;
+    align-items: center;
+  }
+
+  .text-upload-form textarea {
+    margin-right: 10px;
+  }
+
+  #addTextButton {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+
+  #addTextButton:hover {
+    background-color: #e0e0e0;
+  }
+    img {
+      display: block;
+      max-width: 100%;
+      margin-top: 20px;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      color: #3498db;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+
+
+
+    .show-result-form {
+  margin-bottom: 5px; 
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 0; 
+}
+
+.tab-button {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #d9d9d9;
+  border: 2px solid #d9d9d9;
+
+}
+
+.tab-button.active {
+  background-color: #e0f7fa; 
+  border: 3px solid #e0f7fa;
+  z-index: 1;
+}
+
+.tab-button.inactive {
+  background-color: #d9d9d9;
+  border: 2px solid #d9d9d9;
+  z-index: 0;
+}
+
+.frame {
+  border: 4px solid #e0f7fa; 
+  padding: 10px;
+  margin-top: 0; 
+  position: relative;
+  z-index: 1;
+}
+
+.tab {
+  display: none;
+}
+
+.tab.active {
+  display: block;
+}
+  </style>
+</head>
+<body>
+  <div class="myClass">
+  <h2>Plagiarism Detection</h2>
+  <p>Select the text files (*.txt) you want to compare and click 'Show Result' to see the similarity matrix, word clouds and more.</p>
+  
+  <input type="file" id="files" name="files" multiple>
+  <form action="/upload_text" method="post">
+    <textarea name="text_content" rows="2" cols="50" placeholder="... or paste your text here and click Add text..."></textarea>
+    <button type="button" id="addTextButton">Add text</button>
+</form>
+  <ul id="fileList"></ul>
+
+  
+<form action="/visualize" method="post" class="show-result-form">
+  <input type="submit" value="Show Result">
+</form>
+<div class="tab-buttons">
+  {% if plot_url %}
+  <div class="tab-button {% if plot_url %}active{% endif %}" data-tab="similarity">Similarity</div>
+  {% endif %}
+  {% if cloud_url_list %}
+  <div class="tab-button {% if not plot_url %}inactive{% endif %}" data-tab="word_clouds">Word Clouds</div>
+  {% endif %}
+  {% if word_freq_plot_url %}
+  <div class="tab-button" data-tab="word-frequencies">Word Frequencies</div>
+
+  {% endif %}
+</div>
+{% if plot_url %}
+<div id="similarity" class="tab active">
+  <div class="frame">
+    <img src="data:image/png;base64,{{ plot_url }}">
+  </div>
+</div>
+{% endif %}
+
+{% if cloud_url_list %}
+<div id="word_clouds" class="tab">
+  {% for cloud_url in cloud_url_list %}
+      <div class="frame">
+        <img src="data:image/png;base64,{{ cloud_url }}">
+      </div>
+
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if word_freq_plot_url %}
+<div id="word-frequencies" class="tab">
+  <div class="frame">
+    <img src="data:image/png;base64,{{ word_freq_plot_url }}">
+  </div>
+</div>
+{% endif %}
+
+
+{% if plot_url %}
+<a href="/download">Download Report</a>
+{% endif %}
+  </div>
+</div>
+<footer>
+  <p>Developed by <a href=https://github.com/Szackie/plagiarism_detector>szackie</a></p>
+</footer>
+  <script>
+      document.getElementById('addTextButton').addEventListener('click', function() {
+    this.closest('form').submit();
+  });
+
+    var list_files = {{ list_files|tojson|safe }};
+  
+    function deleteFile(fileName) {
+      fetch('/delete/' + fileName, {
+        method: 'DELETE',
+      }).then(function(response) {
+        if (response.ok) {
+          location.reload();
+        } else {
+          console.log('Failed to delete file');
+        }
+      });
+    }
+  
+    document.getElementById('files').addEventListener('change', function(e) {
+    
+      var files = document.getElementById('files').files;
+      var formData = new FormData();
+      for (var i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      }).then(function(response) {
+        if (response.ok) {
+          location.reload();
+        } else {
+          console.log('Failed to upload files');
+        }
+      });
+    });
+  
+    var fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    list_files.forEach(file => {
+
+        var li = document.createElement('li');
+        li.textContent = file;
+
+        var deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteFile(file);
+        });
+        li.appendChild(deleteButton);
+        fileList.appendChild(li);
+    });
+
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const tab = button.getAttribute('data-tab');
+
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(tabContent => tabContent.classList.remove('active'));
+
+        button.classList.add('active');
+        document.getElementById(tab).classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

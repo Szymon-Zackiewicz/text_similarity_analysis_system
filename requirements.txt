@@ -1,0 +1,15 @@
+flask==1.1.2
+jinja2==2.11.3
+werkzeug==1.0.1
+itsdangerous==1.1.0
+click==7.1.2
+gunicorn==20.1.0
+pandas
+matplotlib
+scikit-learn
+nltk
+openpyxl
+xlsxwriter
+flask_session
+wordcloud
+markupsafe==2.0.1
