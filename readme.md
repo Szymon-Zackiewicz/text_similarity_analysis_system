@@ -5,6 +5,7 @@ A web-based application for text similarity analysis and plagiarism detection.
 The system allows users to upload or input multiple texts and generates similarity reports using NLP techniques. Results are presented through interactive visualizations such as heatmaps and word frequency plots.
 
 ![plagiarism_detect_screenshot](https://github.com/user-attachments/assets/d2118428-b628-4a5c-ace2-5baac6e98f19)
+*Application interface*
 
 The application is hosted at [https://plagiarism-detector-dst6.onrender.com/](https://plagiarism-detector-dst6.onrender.com/)
 
@@ -31,7 +32,7 @@ The application is containerized using Docker and hosted on Render. You can acce
 - Click "Download Report" to download an Excel file containing the similarity report.
 
   ![plagiarism_report_screenshot](https://github.com/Szackie/plagiarism_detector/assets/104226817/0af2845b-f092-4ce4-92f4-4d7d83d41867)
-
+*Cosine similarity report generated as Excel file*
 ### Future Improvements
 
 - Add the ability to choose between different language models (MLE and WBI) for comparison and visualize perplexity.
